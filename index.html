@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yapılacaklar</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 28px;
+      color: #222;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-row input:focus {
+      border-color: #4a90d9;
+    }
+
+    .input-row button {
+      padding: 12px 20px;
+      background: #4a90d9;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .input-row button:hover {
+      background: #357abd;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes checkmark {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.15); }
+      60% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes strikethrough {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes slideOut {
+      to {
+        opacity: 0;
+        transform: translateX(40px) scale(0.95);
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
+      }
+    }
+
+    li.slide-out {
+      overflow: hidden;
+      animation: slideOut 0.3s ease forwards;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #fff;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    li.slide-in {
+      animation: slideIn 0.3s ease-out;
+    }
+
+    li.done {
+      animation: checkmark 0.35s ease;
+      background: #f9fdf9;
+    }
+
+    li.done span {
+      color: #999;
+      text-decoration: none;
+      position: relative;
+    }
+
+    li.done span::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      height: 2px;
+      background: #999;
+      animation: strikethrough 0.3s ease forwards;
+    }
+
+    li span {
+      flex: 1;
+      font-size: 16px;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+    }
+
+    li .edit-input {
+      flex: 1;
+      font-size: 16px;
+      padding: 4px 8px;
+      border: 2px solid #4a90d9;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    li .edit-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+
+    li .edit-btn:hover {
+      color: #4a90d9;
+    }
+
+    li .delete-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+
+    li .delete-btn:hover {
+      color: #e74c3c;
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: #aaa;
+      margin-top: 32px;
+      font-size: 15px;
+    }
+
+    /* Auth */
+    .auth-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .auth-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 22px;
+      color: #222;
+    }
+
+    .auth-box input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .auth-box input:focus {
+      border-color: #4a90d9;
+    }
+
+    .auth-box .auth-btn {
+      width: 100%;
+      padding: 12px;
+      background: #4a90d9;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 8px;
+    }
+
+    .auth-box .auth-btn:hover {
+      background: #357abd;
+    }
+
+    .auth-box .auth-btn.secondary {
+      background: #fff;
+      color: #4a90d9;
+      border: 2px solid #4a90d9;
+    }
+
+    .auth-box .auth-btn.secondary:hover {
+      background: #f0f6ff;
+    }
+
+    .auth-box .auth-error {
+      color: #e74c3c;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .auth-box .auth-toggle {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
+      color: #888;
+    }
+
+    .auth-box .auth-toggle a {
+      color: #4a90d9;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .auth-box .auth-toggle a:hover {
+      text-decoration: underline;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .top-bar .user-email {
+      font-size: 14px;
+      color: #888;
+    }
+
+    .top-bar .logout-btn {
+      background: none;
+      border: 1px solid #ddd;
+      color: #888;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .top-bar .logout-btn:hover {
+      border-color: #e74c3c;
+      color: #e74c3c;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Auth -->
+    <div id="authSection">
+      <h1>Yapılacaklar</h1>
+      <div class="auth-box">
+        <h2 id="authTitle">Giriş Yap</h2>
+        <div class="auth-error hidden" id="authError"></div>
+        <input type="email" id="authEmail" placeholder="E-posta">
+        <input type="password" id="authPassword" placeholder="Şifre">
+        <button class="auth-btn" id="authSubmit" onclick="handleAuth()">Giriş Yap</button>
+        <p class="auth-toggle">
+          <span id="authToggleText">Hesabın yok mu?</span>
+          <a id="authToggleLink" onclick="toggleAuthMode()">Kayıt Ol</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- App -->
+    <div id="appSection" class="hidden">
+      <div class="top-bar">
+        <span class="user-email" id="userEmail"></span>
+        <button class="logout-btn" onclick="logout()">Çıkış</button>
+      </div>
+      <h1>Yapılacaklar</h1>
+      <div class="input-row">
+        <input type="text" id="todoInput" placeholder="Yeni görev ekle...">
+        <button onclick="addTodo()">Ekle</button>
+      </div>
+      <ul id="todoList"></ul>
+      <p class="empty-msg" id="emptyMsg">Henüz görev yok.</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://fglmcpgvoabhgxrvtkll.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnbG1jcGd2b2FiaGd4cnZ0a2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MzM3NTgsImV4cCI6MjA4NzAwOTc1OH0.8GzRLeWI0M051jW9y9I6rwchc5clEGZr1KpoH9DSsws';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const authSection = document.getElementById('authSection');
+    const appSection = document.getElementById('appSection');
+    const authError = document.getElementById('authError');
+    const authTitle = document.getElementById('authTitle');
+    const authSubmit = document.getElementById('authSubmit');
+    const authToggleText = document.getElementById('authToggleText');
+    const authToggleLink = document.getElementById('authToggleLink');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const userEmailEl = document.getElementById('userEmail');
+
+    let isLoginMode = true;
+
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      authError.classList.add('hidden');
+      if (isLoginMode) {
+        authTitle.textContent = 'Giriş Yap';
+        authSubmit.textContent = 'Giriş Yap';
+        authToggleText.textContent = 'Hesabın yok mu?';
+        authToggleLink.textContent = 'Kayıt Ol';
+      } else {
+        authTitle.textContent = 'Kayıt Ol';
+        authSubmit.textContent = 'Kayıt Ol';
+        authToggleText.textContent = 'Zaten hesabın var mı?';
+        authToggleLink.textContent = 'Giriş Yap';
+      }
+    }
+
+    function showError(msg) {
+      authError.textContent = msg;
+      authError.classList.remove('hidden');
+    }
+
+    async function handleAuth() {
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      authError.classList.add('hidden');
+
+      if (!email || !password) { showError('E-posta ve şifre gerekli.'); return; }
+      if (password.length < 6) { showError('Şifre en az 6 karakter olmalı.'); return; }
+
+      let result;
+      if (isLoginMode) {
+        result = await sb.auth.signInWithPassword({ email, password });
+      } else {
+        result = await sb.auth.signUp({ email, password });
+      }
+
+      if (result.error) {
+        showError(result.error.message);
+      }
+    }
+
+    async function logout() {
+      await sb.auth.signOut();
+    }
+
+    function showApp(user) {
+      authSection.classList.add('hidden');
+      appSection.classList.remove('hidden');
+      userEmailEl.textContent = user.email;
+      loadTodos();
+    }
+
+    function showAuth() {
+      appSection.classList.add('hidden');
+      authSection.classList.remove('hidden');
+      authEmail.value = '';
+      authPassword.value = '';
+      authError.classList.add('hidden');
+      todos = [];
+    }
+
+    sb.auth.onAuthStateChange(function(event, session) {
+      if (session && session.user) {
+        showApp(session.user);
+      } else {
+        showAuth();
+      }
+    });
+
+    const input = document.getElementById('todoInput');
+    const list = document.getElementById('todoList');
+    const emptyMsg = document.getElementById('emptyMsg');
+
+    let todos = [];
+
+    function render() {
+      list.innerHTML = '';
+      emptyMsg.style.display = todos.length === 0 ? 'block' : 'none';
+
+      todos.forEach(function(todo, i) {
+        const li = document.createElement('li');
+        if (todo.done) li.classList.add('done');
+
+        const span = document.createElement('span');
+        span.textContent = todo.text;
+        span.onclick = function() { toggleTodo(i); };
+        span.ondblclick = function(e) { e.stopPropagation(); startEdit(i); };
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-btn';
+        editBtn.textContent = '\u270E';
+        editBtn.onclick = function() { startEdit(i); };
+
+        const btn = document.createElement('button');
+        btn.className = 'delete-btn';
+        btn.textContent = '\u00D7';
+        btn.onclick = function() { deleteTodo(i); };
+
+        li.appendChild(span);
+        li.appendChild(editBtn);
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    async function loadTodos() {
+      const { data } = await sb.from('todos').select('*').order('created_at');
+      todos = data || [];
+      render();
+    }
+
+    async function addTodo() {
+      const text = input.value.trim();
+      if (!text) return;
+      const userId = (await sb.auth.getUser()).data.user.id;
+      const { data } = await sb.from('todos').insert({ text: text, done: false, user_id: userId }).select();
+      if (data && data[0]) {
+        todos.push(data[0]);
+        input.value = '';
+        render();
+        var items = list.querySelectorAll('li');
+        items[items.length - 1].classList.add('slide-in');
+        input.focus();
+      }
+    }
+
+    async function toggleTodo(index) {
+      const todo = todos[index];
+      const newDone = !todo.done;
+      await sb.from('todos').update({ done: newDone }).eq('id', todo.id);
+      todos[index].done = newDone;
+      render();
+      if (newDone) {
+        var items = list.querySelectorAll('li');
+        items[index].classList.add('done');
+      }
+    }
+
+    async function startEdit(index) {
+      const items = list.querySelectorAll('li');
+      const li = items[index];
+      const span = li.querySelector('span');
+      const editInput = document.createElement('input');
+      editInput.className = 'edit-input';
+      editInput.value = todos[index].text;
+      li.replaceChild(editInput, span);
+      editInput.focus();
+
+      async function finishEdit() {
+        const newText = editInput.value.trim();
+        if (newText && newText !== todos[index].text) {
+          await sb.from('todos').update({ text: newText }).eq('id', todos[index].id);
+          todos[index].text = newText;
+        }
+        render();
+      }
+
+      editInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') finishEdit();
+        if (e.key === 'Escape') render();
+      });
+      editInput.addEventListener('blur', finishEdit);
+    }
+
+    async function deleteTodo(index) {
+      var items = list.querySelectorAll('li');
+      var li = items[index];
+      li.classList.add('slide-out');
+      li.addEventListener('animationend', async function() {
+        await sb.from('todos').delete().eq('id', todos[index].id);
+        todos.splice(index, 1);
+        render();
+      });
+    }
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') addTodo();
+    });
+
+    authPassword.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleAuth();
+    });
+  </script>
+</body>
+</html>
