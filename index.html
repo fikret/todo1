@@ -309,6 +309,151 @@
       color: #e74c3c;
     }
 
+    /* Categories */
+    .cat-section {
+      margin-bottom: 20px;
+    }
+
+    .cat-section h3 {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .cat-add-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .cat-add-row input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .cat-add-row input:focus {
+      border-color: #4a90d9;
+    }
+
+    .color-options {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .color-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.selected { border-color: #333; }
+
+    .cat-add-row button {
+      padding: 8px 14px;
+      background: #4a90d9;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .cat-add-row button:hover { background: #357abd; }
+
+    .cat-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      color: #fff;
+    }
+
+    .cat-chip.filter-chip {
+      opacity: 0.6;
+    }
+
+    .cat-chip.filter-chip.active {
+      opacity: 1;
+      border-color: #333;
+    }
+
+    .cat-chip .chip-del {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .cat-chip .chip-del:hover { color: #fff; }
+
+    .chip-all {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 2px solid #ddd;
+      background: #fff;
+      color: #555;
+      transition: all 0.2s;
+    }
+
+    .chip-all.active {
+      border-color: #333;
+      background: #333;
+      color: #fff;
+    }
+
+    .input-row select {
+      padding: 12px 8px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      max-width: 130px;
+    }
+
+    .input-row select:focus { border-color: #4a90d9; }
+
+    .todo-cat-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      color: #fff;
+      white-space: nowrap;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -337,8 +482,20 @@
         <button class="logout-btn" onclick="logout()">Çıkış</button>
       </div>
       <h1>Yapılacaklar</h1>
+
+      <div class="cat-section">
+        <h3>Kategoriler</h3>
+        <div class="cat-add-row">
+          <input type="text" id="catInput" placeholder="Yeni kategori...">
+          <div class="color-options" id="colorOptions"></div>
+          <button onclick="addCategory()">+</button>
+        </div>
+        <div class="cat-chips" id="catChips"></div>
+      </div>
+
       <div class="input-row">
         <input type="text" id="todoInput" placeholder="Yeni görev ekle...">
+        <select id="todoCategory"><option value="">Kategorisiz</option></select>
         <button onclick="addTodo()">Ekle</button>
       </div>
       <ul id="todoList"></ul>
@@ -410,11 +567,12 @@
       await sb.auth.signOut();
     }
 
-    function showApp(user) {
+    async function showApp(user) {
       authSection.classList.add('hidden');
       appSection.classList.remove('hidden');
       userEmailEl.textContent = user.email;
-      loadTodos();
+      await loadCategories();
+      await loadTodos();
     }
 
     function showAuth() {
@@ -424,6 +582,8 @@
       authPassword.value = '';
       authError.classList.add('hidden');
       todos = [];
+      categories = [];
+      activeFilter = null;
     }
 
     sb.auth.onAuthStateChange(function(event, session) {
@@ -437,14 +597,109 @@
     const input = document.getElementById('todoInput');
     const list = document.getElementById('todoList');
     const emptyMsg = document.getElementById('emptyMsg');
+    const catInput = document.getElementById('catInput');
+    const colorOptionsEl = document.getElementById('colorOptions');
+    const catChipsEl = document.getElementById('catChips');
+    const todoCatSelect = document.getElementById('todoCategory');
 
+    const COLORS = ['#4a90d9','#e74c3c','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e'];
+    let selectedColor = COLORS[0];
+    let categories = [];
+    let activeFilter = null;
     let todos = [];
+
+    // Render color palette
+    COLORS.forEach(function(c) {
+      const dot = document.createElement('div');
+      dot.className = 'color-dot' + (c === selectedColor ? ' selected' : '');
+      dot.style.background = c;
+      dot.onclick = function() {
+        selectedColor = c;
+        colorOptionsEl.querySelectorAll('.color-dot').forEach(function(d) { d.classList.remove('selected'); });
+        dot.classList.add('selected');
+      };
+      colorOptionsEl.appendChild(dot);
+    });
+
+    function getCatById(id) {
+      return categories.find(function(c) { return c.id === id; });
+    }
+
+    function renderCategories() {
+      // Chips
+      catChipsEl.innerHTML = '';
+      var allChip = document.createElement('div');
+      allChip.className = 'chip-all' + (activeFilter === null ? ' active' : '');
+      allChip.textContent = 'Tümü';
+      allChip.onclick = function() { activeFilter = null; renderCategories(); render(); };
+      catChipsEl.appendChild(allChip);
+
+      categories.forEach(function(cat) {
+        var chip = document.createElement('div');
+        chip.className = 'cat-chip filter-chip' + (activeFilter === cat.id ? ' active' : '');
+        chip.style.background = cat.color;
+        chip.onclick = function() { activeFilter = activeFilter === cat.id ? null : cat.id; renderCategories(); render(); };
+
+        var nameSpan = document.createElement('span');
+        nameSpan.textContent = cat.name;
+        chip.appendChild(nameSpan);
+
+        var del = document.createElement('button');
+        del.className = 'chip-del';
+        del.textContent = '\u00D7';
+        del.onclick = function(e) { e.stopPropagation(); deleteCategory(cat.id); };
+        chip.appendChild(del);
+
+        catChipsEl.appendChild(chip);
+      });
+
+      // Select dropdown
+      todoCatSelect.innerHTML = '<option value="">Kategorisiz</option>';
+      categories.forEach(function(cat) {
+        var opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        todoCatSelect.appendChild(opt);
+      });
+    }
+
+    async function loadCategories() {
+      var { data } = await sb.from('categories').select('*').order('created_at');
+      categories = data || [];
+      renderCategories();
+    }
+
+    async function addCategory() {
+      var name = catInput.value.trim();
+      if (!name) return;
+      var userId = (await sb.auth.getUser()).data.user.id;
+      var { data } = await sb.from('categories').insert({ name: name, color: selectedColor, user_id: userId }).select();
+      if (data && data[0]) {
+        categories.push(data[0]);
+        catInput.value = '';
+        renderCategories();
+      }
+    }
+
+    async function deleteCategory(id) {
+      await sb.from('categories').delete().eq('id', id);
+      categories = categories.filter(function(c) { return c.id !== id; });
+      if (activeFilter === id) activeFilter = null;
+      renderCategories();
+      render();
+    }
+
+    catInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') addCategory();
+    });
 
     function render() {
       list.innerHTML = '';
-      emptyMsg.style.display = todos.length === 0 ? 'block' : 'none';
+      var filtered = activeFilter === null ? todos : todos.filter(function(t) { return t.category_id === activeFilter; });
+      emptyMsg.style.display = filtered.length === 0 ? 'block' : 'none';
 
-      todos.forEach(function(todo, i) {
+      filtered.forEach(function(todo) {
+        var i = todos.indexOf(todo);
         const li = document.createElement('li');
         if (todo.done) li.classList.add('done');
 
@@ -452,6 +707,15 @@
         span.textContent = todo.text;
         span.onclick = function() { toggleTodo(i); };
         span.ondblclick = function(e) { e.stopPropagation(); startEdit(i); };
+
+        var cat = getCatById(todo.category_id);
+        var tagEl = null;
+        if (cat) {
+          tagEl = document.createElement('span');
+          tagEl.className = 'todo-cat-tag';
+          tagEl.style.background = cat.color;
+          tagEl.textContent = cat.name;
+        }
 
         const editBtn = document.createElement('button');
         editBtn.className = 'edit-btn';
@@ -464,6 +728,7 @@
         btn.onclick = function() { deleteTodo(i); };
 
         li.appendChild(span);
+        if (tagEl) li.appendChild(tagEl);
         li.appendChild(editBtn);
         li.appendChild(btn);
         list.appendChild(li);
@@ -480,7 +745,8 @@
       const text = input.value.trim();
       if (!text) return;
       const userId = (await sb.auth.getUser()).data.user.id;
-      const { data } = await sb.from('todos').insert({ text: text, done: false, user_id: userId }).select();
+      var catId = todoCatSelect.value || null;
+      const { data } = await sb.from('todos').insert({ text: text, done: false, user_id: userId, category_id: catId }).select();
       if (data && data[0]) {
         todos.push(data[0]);
         input.value = '';
